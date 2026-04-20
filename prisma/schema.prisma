@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Reporter {
+  id         String      @id @default(uuid())
+  phone      String      @unique
+  verified   Boolean     @default(false)
+  banned     Boolean     @default(false)
+  banReason  String?
+  createdAt  DateTime    @default(now())
+  complaints Complaint[]
+}
+
+model Property {
+  id              String          @id @default(uuid())
+  address         String          @unique
+  ownerName       String?
+  ownerPhone      String?
+  snapHoaId       String?
+  complaints      Complaint[]
+  complianceItem  ComplianceItem?
+  notifications   NotificationLog[]
+  createdAt       DateTime        @default(now())
+}
+
+model Complaint {
+  id          String   @id @default(uuid())
+  reporter    Reporter @relation(fields: [reporterId], references: [id])
+  reporterId  String
+  property    Property @relation(fields: [propertyId], references: [id])
+  propertyId  String
+  category    String
+  description String?
+  photoUrls   String
+  aiAnalysis  String?
+  aiSeverity  Int      @default(5)
+  flagged     Boolean  @default(false)
+  flagReason  String?
+  createdAt   DateTime @default(now())
+
+  @@unique([reporterId, propertyId, category])
+}
+
+model ComplianceItem {
+  id             String    @id @default(uuid())
+  property       Property  @relation(fields: [propertyId], references: [id])
+  propertyId     String    @unique
+  status         String    @default("monitoring")
+  complaintCount Int       @default(0)
+  priorityScore  Int       @default(0)
+  categories     String    @default("")
+  escalatedAt    DateTime?
+  resolvedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model NotificationLog {
+  id              String   @id @default(uuid())
+  recipientPhone  String
+  recipientRole   String
+  type            String
+  message         String
+  relatedProperty Property? @relation(fields: [propertyId], references: [id])
+  propertyId      String?
+  sentAt          DateTime @default(now())
+}
+
+model AdminUser {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String
+  role         String   @default("admin")
+  createdAt    DateTime @default(now())
+}
+
+model VerificationCode {
+  id        String   @id @default(uuid())
+  phone     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

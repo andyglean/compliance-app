@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Travis Ranch Compliance Reporter
 
-## Getting Started
+Community courtesy reporting tool for Travis Ranch HOA (Kaufman County, TX). Helps residents report the most egregious compliance violations — overgrown yards, junk/bulk trash, and unauthorized vehicles — while giving property owners a heads-up to address issues before official enforcement.
 
-First, run the development server:
+## How It Works
+
+1. Residents verify their phone number via SMS
+2. Select one of 3 violation categories, enter the property address, and upload photos
+3. The property owner receives a courtesy text notification
+4. If 3+ separate residents report the same property, it escalates to the compliance team's priority queue
+5. Compliance team manages the queue from the admin dashboard
+
+## Key Features
+
+- **Phone verification** — prevents anonymous abuse
+- **3-complaint threshold** — properties only enter the compliance queue after 3 distinct residents report them
+- **AI photo analysis** — validates photos match the selected category and scores severity
+- **Courtesy notifications** — property owners get a heads-up text, not an official violation
+- **Admin dashboard** — compliance queue sorted by priority, property detail views, board reports
+- **Rate limiting** — 5 reports per day per phone number
+- **Partial anonymity** — reporter identity is hidden from property owners, visible to admin only
+
+## Tech Stack
+
+- **Next.js 16** (App Router)
+- **Prisma + SQLite** (PostgreSQL-ready for production)
+- **Twilio** (SMS verification and notifications)
+- **OpenAI GPT-4o** (photo analysis and priority scoring)
+- **Tailwind CSS** (mobile-first UI)
+
+## Local Development
 
 ```bash
+# Install dependencies
+npm install
+
+# Generate Prisma client
+npx prisma generate
+
+# Create database
+npx prisma db push
+
+# Copy env and fill in your keys
+cp .env.example .env
+
+# Start dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Admin dashboard:** http://localhost:3000/admin
+Default login: `admin` / `TravisRanch2024!`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Demo Mode
 
-## Learn More
+With placeholder API keys, the app runs in demo mode:
+- SMS codes are printed to the console (and returned in the API response)
+- AI analysis returns mock results
+- Notifications are logged to the console instead of sending real texts
 
-To learn more about Next.js, take a look at the following resources:
+## Deploy to Digital Ocean
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Quick Deploy
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Create an Ubuntu 22.04+ droplet (1GB RAM minimum)
+2. SSH into the droplet
+3. Run:
 
-## Deploy on Vercel
+```bash
+curl -sL https://raw.githubusercontent.com/YOURUSER/compliance-app/main/deploy.sh -o deploy.sh
+chmod +x deploy.sh
+./deploy.sh https://github.com/YOURUSER/compliance-app.git
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. Edit `/opt/compliance-app/.env` with your real API keys
+5. Restart: `cd /opt/compliance-app && docker compose up -d --build`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Add SSL (HTTPS)
+
+```bash
+./setup-ssl.sh compliance.travisranchlife.com
+```
+
+Requires DNS A record pointing to the droplet's IP.
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | Yes | SQLite path (`file:./dev.db`) |
+| `TWILIO_ACCOUNT_SID` | For SMS | Twilio account SID |
+| `TWILIO_AUTH_TOKEN` | For SMS | Twilio auth token |
+| `TWILIO_PHONE_NUMBER` | For SMS | Twilio phone number (with country code) |
+| `OPENAI_API_KEY` | For AI | OpenAI API key |
+| `ADMIN_JWT_SECRET` | Yes | Random string for JWT signing |
+| `PROPERTY_MANAGER_PHONE` | For alerts | PM phone number |
+| `COMPLIANCE_DIRECTOR_PHONE` | For alerts | Compliance director phone |
+| `SNAP_HOA_API_URL` | Future | Snap HOA API endpoint |
+| `SNAP_HOA_API_KEY` | Future | Snap HOA API key |
+
+## Snap HOA Integration
+
+The Snap HOA API integration is stubbed out in `src/lib/snap-hoa.ts`. When API credentials are available, update the placeholder functions to make real API calls for property owner lookup.
