@@ -6,10 +6,9 @@ services:
     env_file:
       - .env
     volumes:
+      - ./dev.db:/app/dev.db
       - uploads:/app/public/uploads
-      - db_data:/app/data
     restart: unless-stopped
 
 volumes:
   uploads:
-  db_data:
