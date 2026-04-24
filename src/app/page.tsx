@@ -14,9 +14,13 @@ export default function Home() {
 
   return (
     <main className="flex-1 flex flex-col">
-      <header className="bg-[var(--primary)] text-white px-4 py-5 text-center shadow-md">
-        <h1 className="text-xl font-bold tracking-tight">Travis Ranch</h1>
-        <p className="text-sm opacity-90 mt-0.5">Community Compliance Reporter</p>
+      <header className="bg-[#acacac] px-4 py-4 text-center shadow-md">
+        <img
+          src="https://travisranchlife.com/wp-content/uploads/2025/07/travis_ranch_logo_cutout.png"
+          alt="Travis Ranch Property Owners Association"
+          className="h-16 mx-auto mb-1"
+        />
+        <p className="text-sm text-white font-medium">Community Compliance Reporter</p>
       </header>
 
       <div className="flex-1 flex flex-col px-4 py-6 max-w-lg mx-auto w-full">
